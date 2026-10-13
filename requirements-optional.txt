@@ -1,0 +1,5 @@
+# Optional extras. The app works without them and tells you what it skipped.
+pydeseq2>=0.4    # DESeq2 statistics for raw-count data (recommended)
+networkx>=3.0    # nicer protein-interaction network drawing
+openpyxl>=3.1    # lets the app read Excel (.xlsx) files
+anthropic>=0.40  # plain-language AI summary (needs ANTHROPIC_API_KEY)
