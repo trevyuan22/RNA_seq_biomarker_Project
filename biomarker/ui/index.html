@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RNA-seq Biomarker Studio</title>
+<style>
+:root{--paper:#f4f0e6;--card:#fffdf9;--ink:#1f2430;--muted:#6b6f7a;--rule:#e4dfd2;--up:#b5412b;--down:#2b6a8c;--gold:#b7791f;
+--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;gap:34px;padding:18px 40px;border-bottom:1px solid var(--rule);background:var(--paper);position:sticky;top:0;z-index:5}
+.logo{font:600 19px var(--serif);letter-spacing:-.005em}.logo small{display:block;font:700 9.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--up);margin-bottom:1px}
+.stepper{display:flex;gap:6px;list-style:none;margin:0 auto 0 0;padding:0}
+.stepper li{display:flex;align-items:center;gap:9px;padding:6px 14px;border-radius:20px;color:var(--muted);font-size:13.5px;font-weight:600}
+.stepper li b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid #bdb7a6;font-size:11.5px}
+.stepper li.on{color:var(--ink);background:#ebe5d6}.stepper li.on b{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.stepper li.done b{background:var(--down);border-color:var(--down);color:#fff}
+.quit{background:none;border:0;color:var(--muted);font:600 12.5px var(--sans);cursor:pointer}.quit:hover{color:var(--up)}
+main{max-width:1000px;margin:0 auto;padding:38px 40px 130px}
+h1{font:600 34px/1.15 var(--serif);margin:0 0 8px;letter-spacing:-.01em}.sub{font:italic 17px/1.55 var(--serif);color:#4a505c;margin:0 0 28px;max-width:62ch}
+h3{font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:30px 0 10px}
+.cards{display:grid;gap:14px}.acard{display:grid;grid-template-columns:28px 1fr;gap:6px 14px;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:20px 24px;cursor:pointer;font:inherit;color:inherit;transition:border-color .15s,box-shadow .15s}
+.acard:hover{border-color:#b9b2a0}.acard.on{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--up)}
+.acard .dot{width:18px;height:18px;border-radius:50%;border:1.5px solid #b9b2a0;margin-top:5px}.acard.on .dot{border:5px solid var(--ink)}
+.acard h2{font:600 22px/1.25 var(--serif);margin:0}.acard .tag{color:#4a505c;margin:2px 0 8px;grid-column:2}
+.acard .when{grid-column:2;font-size:13.5px;color:var(--muted)}.acard .when b{color:var(--ink)}
+.acard ul{grid-column:2;margin:8px 0 0;padding-left:18px;font-size:13.5px;color:#3d4350}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.bar input[type=text]{flex:1;min-width:260px}
+input[type=text],select{font:inherit;padding:9px 12px;border:1px solid #cfc9bb;border-radius:6px;background:var(--card);color:var(--ink)}
+input[type=text]:focus,select:focus{outline:2px solid #b9d0db;border-color:var(--down)}
+.btn{font:600 13.5px var(--sans);padding:9px 18px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+.btn:hover{background:#343b4b}.btn.ghost{background:none;color:var(--ink);border-color:#bdb7a6}.btn.ghost:hover{background:#ebe5d6}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn.big{padding:13px 30px;font-size:15px}
+.drop{margin:14px 0 6px;border:1.5px dashed #b9b2a0;border-radius:10px;padding:20px;text-align:center;color:var(--muted);background:rgba(255,253,249,.5);transition:all .15s}
+.drop.over{border-color:var(--down);background:#e8f0f4;color:var(--ink)}.drop b{color:var(--ink)}.drop a{color:var(--down);cursor:pointer;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--card);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+th{font:700 10px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1.5px solid var(--ink)}
+td{padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}tr:last-child td{border-bottom:0}.fname{font-weight:600;word-break:break-all}.det{color:var(--muted);font-size:12.5px}
+.note{border-left:3px solid var(--gold);background:#fbf3df;padding:10px 16px;margin:12px 0;border-radius:0 5px 5px 0;font-size:13.5px}
+.note.err{border-color:var(--up);background:#fbece7}.note.ok{border-color:var(--down);background:#e8f0f4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.lab{display:block;font:700 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.scroll{max-height:300px;overflow:auto;border-radius:8px}
+.mod{display:grid;grid-template-columns:26px 1fr;gap:4px 12px;padding:15px 18px;background:var(--card);border:1px solid var(--rule);border-radius:8px;margin-bottom:10px}
+.mod.off{opacity:.55}.mod input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--down)}
+.mod h4{margin:0;font:600 16px var(--serif)}.mod p{margin:3px 0 0;grid-column:2;font-size:13.5px;color:#3d4350}
+.chip{display:inline-block;font:600 10.5px var(--sans);letter-spacing:.04em;padding:2px 9px;border-radius:10px;background:#ebe5d6;color:#5b606c;margin-left:8px;vertical-align:2px}
+.chip.warn{background:#f6e3d0;color:#8a4a12}.chip.must{background:#dfe9ee;color:var(--down)}
+.mod .kw{grid-column:2;margin-top:8px}.mod .kw input{width:100%}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--rule);padding:14px 40px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.foot .hint{color:var(--muted);font-size:13px}
+.log{background:#1f2430;color:#d9dce3;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:16px 18px;border-radius:8px;height:300px;overflow:auto;white-space:pre-wrap}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.steps span{font-size:12.5px;padding:4px 12px;border-radius:14px;background:#ebe5d6;color:var(--muted);font-weight:600}
+.steps span.cur{background:var(--ink);color:var(--paper)}.steps span.ok{background:#dfe9ee;color:var(--down)}
+.pbar{height:4px;background:var(--rule);border-radius:2px;overflow:hidden;margin:10px 0}.pbar i{display:block;height:100%;width:30%;background:var(--down);animation:slide 1.3s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-30%}100%{margin-left:100%}}.pbar.done i{animation:none;width:100%;margin:0}.pbar.err i{animation:none;width:100%;margin:0;background:var(--up)}
+dl.sum{display:grid;grid-template-columns:170px 1fr;gap:8px 16px;margin:0;font-size:14px}dl.sum dt{color:var(--muted)}dl.sum dd{margin:0;font-weight:600;word-break:break-all}
+#modal{position:fixed;inset:0;background:rgba(31,36,48,.45);display:none;place-items:center;z-index:20}#modal.on{display:grid}
+.dlg{background:var(--card);border-radius:12px;padding:24px;width:min(640px,92vw);max-height:80vh;display:flex;flex-direction:column}
+.dlg .path{font:12.5px ui-monospace,Menlo,Consolas,monospace;color:var(--muted);margin:6px 0 10px;word-break:break-all}.dlg ul{list-style:none;margin:0;padding:0;overflow:auto;border:1px solid var(--rule);border-radius:6px;flex:1;min-height:180px}
+.dlg li{padding:9px 14px;border-bottom:1px solid var(--rule);cursor:pointer}.dlg li:hover{background:#f3eee0}.dlg li:last-child{border:0}
+@media(max-width:800px){.top{flex-wrap:wrap;gap:10px;padding:14px 18px}.stepper li span{display:none}main{padding:24px 18px 130px}.grid2{grid-template-columns:1fr}.foot{padding:12px 18px}}
+</style></head><body>
+<header class="top"><div class="logo"><small>RNA-seq</small>Biomarker Studio</div>
+<ol class="stepper" id="stepper"></ol><button class="quit" id="quit">Quit app</button></header>
+<main id="view"></main>
+<div class="foot"><button class="btn ghost" id="back">&larr; Back</button><span class="hint" id="hint"></span><button class="btn" id="next">Continue &rarr;</button></div>
+<div id="modal"><div class="dlg"><h3 style="margin-top:0">Choose the folder that holds your data files</h3><div class="path" id="mpath"></div>
+<ul id="mlist"></ul><div class="bar" style="margin-top:14px;justify-content:flex-end"><button class="btn ghost" id="mcancel">Cancel</button><button class="btn" id="muse">Use this folder</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STEPS=['Analysis','Your data','Options','Run'];
+const S={step:0,cat:null,analysis:null,folder:'',files:[],roles:{},g:{samples:[],labels:{},columns:[],column:null,source:'',note:''},
+ case:'',control:'',modules:new Set(),online:true,keyword:'',ai:false,model:'',models:[],out:'',err:'',job:null,runState:'idle',lines:[],steps:[],report:null,folder_out:null,runErr:null,scanning:false,msg:''};
+async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({error:'Unexpected reply'}));if(j.error&&!r.ok)throw new Error(j.error);return j}
+const fileOf=role=>S.files.find(f=>S.roles[f.path]===role);
+const rolesAs=role=>S.files.filter(f=>S.roles[f.path]===role);
+
+function stepper(){$('#stepper').innerHTML=STEPS.map((s,i)=>`<li class="${i===S.step?'on':i<S.step?'done':''}"><b>${i<S.step?'&#10003;':i+1}</b><span>${s}</span></li>`).join('')}
+function nav(){const last=S.step===3;$('#back').style.visibility=S.step===0||S.runState==='running'?'hidden':'visible';
+ $('#next').style.display=last?'none':'';$('#hint').textContent=S.err||'';$('#hint').style.color=S.err?'var(--up)':'var(--muted)'}
+function go(n){S.err='';S.step=n;if(n===1&&S.analysis){loadModels();if(!S.files.length){render();scan();return}}render()}
+$('#back').onclick=()=>go(S.step-1);
+$('#next').onclick=()=>{const e=validate(S.step);if(e){S.err=e;nav();return}go(S.step+1)};
+$('#quit').onclick=async()=>{if(confirm('Close the app? Finished reports stay in the outputs folder.')){try{await api('/api/quit',{method:'POST',body:'{}'})}catch(e){}document.body.innerHTML='<main><h1>App closed</h1><p class="sub">You can close this tab. Your reports are in the <b>outputs</b> folder.</p></main>'}};
+
+function validate(step){
+ if(step===0&&!S.analysis)return'Choose one of the analyses to continue.';
+ if(step===1){
+  if(S.analysis==='predict'){if(!S.model)return'Choose a trained model.';if(!fileOf('main'))return'Mark one file as the new samples ("Main expression data").';return''}
+  if(!fileOf('main'))return'Mark one file as "Main expression data" in the list above.';
+  if(!S.g.samples.length)return'No samples were found in the main expression file.';
+  const miss=S.g.samples.filter(s=>!(S.g.labels[s]||'').trim());if(miss.length)return`${miss.length} sample(s) have no group yet. Type a group name for each.`;
+  const counts={};S.g.samples.forEach(s=>{const k=S.g.labels[s].trim();counts[k]=(counts[k]||0)+1});
+  if(S.analysis==='compare'){if(!S.case||!S.control||S.case===S.control)return'Choose two different groups to compare.';if(counts[S.case]<2||counts[S.control]<2)return'Each group needs at least 2 samples.'}
+  if(S.analysis==='classify'){if(Object.keys(counts).length<2)return'The classifier needs at least 2 groups.';const small=Object.entries(counts).filter(([k,v])=>v<6);if(small.length)return`Group "${small[0][0]}" has only ${small[0][1]} samples. The classifier needs at least 6 per group (15 or more is better). With fewer, use "Compare two groups" instead.`}
+ }
+ return''}
+
+function render(){stepper();nav();[view0,view1,view2,view3][S.step]();window.scrollTo(0,0)}
+
+/* ---------------- step 1: choose analysis */
+function view0(){const v=$('#view');
+ v.innerHTML=`<h1>What would you like to do?</h1><p class="sub">Pick the kind of analysis. You can run another one afterwards with different data.</p><div class="cards">`+
+ S.cat.analyses.map(a=>`<button class="acard ${S.analysis===a.id?'on':''}" data-id="${a.id}"><span class="dot"></span><h2>${esc(a.title)}</h2>
+ <div class="tag">${esc(a.tagline)}</div><div class="when"><b>Use it when:</b> ${esc(a.use_when)}</div><ul>${a.you_get.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></button>`).join('')+'</div>';
+ v.querySelectorAll('.acard').forEach(b=>b.onclick=()=>{S.analysis=b.dataset.id;S.err='';view0();nav()});}
+
+/* ---------------- step 2: data */
+async function scan(){if(!S.folder)return;S.scanning=true;S.msg='';view1();
+ try{const r=await api('/api/scan?folder='+encodeURIComponent(S.folder));S.files=r.files;S.roles={};r.files.forEach(f=>S.roles[f.path]=f.role);await loadGroups();}
+ catch(e){S.files=[];S.msg=e.message}S.scanning=false;if(S.step===1)view1()}
+async function loadModels(){try{S.models=(await api('/api/models')).models;if(!S.model&&S.models.length)S.model=S.models[0]}catch(e){}}
+function distinct(){return[...new Set(S.g.samples.map(s=>(S.g.labels[s]||'').trim()).filter(Boolean))]}
+function pickCC(){const gs=distinct();if(gs.length<2)return;const ctl=gs.find(g=>/ctrl|control|healthy|normal|wild|wt|untreated|vehicle|mock|e3|neg/i.test(g));
+ if(!gs.includes(S.control)||!gs.includes(S.case)||S.case===S.control){S.control=ctl||gs[0];S.case=gs.find(g=>g!==S.control)}}
+async function loadGroups(){const m=fileOf('main');S.g={samples:[],labels:{},columns:[],column:null,source:'',note:''};if(!m||S.analysis==='predict')return;
+ try{S.g=await api('/api/groups',{method:'POST',body:JSON.stringify({expression:m.path,sheet:(fileOf('sheet')||{}).path||null,group_column:S.gcol||null})});pickCC()}
+ catch(e){S.g.note=e.message}}
+function view1(){const v=$('#view');
+ const pred=S.analysis==='predict';
+ let h=`<h1>${pred?'Your new samples and model':'Where is your data?'}</h1><p class="sub">Point the app at a folder. It looks inside every file, works out what each one is (whatever it is called), and suggests how to use it. Change anything that looks wrong.</p>
+ <div class="bar"><input type="text" id="folder" value="${esc(S.folder)}" spellcheck="false"><button class="btn ghost" id="browse">Browse&hellip;</button><button class="btn" id="rescan">Scan folder</button></div>
+ <div class="drop" id="drop">Drop your files here to add them to this folder, or <a id="pick">choose files</a><input type="file" id="fileinput" multiple hidden></div>`;
+ if(S.msg)h+=`<div class="note err">${esc(S.msg)}</div>`;
+ if(S.scanning)h+='<div class="note ok">Scanning&hellip; large files can take a few seconds.</div>';
+ else if(S.files.length){
+  h+=`<h3>Files found</h3><table><tr><th>File</th><th>What it looks like</th><th style="width:230px">Use it as</th></tr>`+S.files.map((f,i)=>`<tr><td class="fname">${esc(f.name)}<div class="det">${esc(f.size_label||f.size_mb+" MB")}</div></td><td class="det">${esc(f.detail)}</td>
+  <td><select data-i="${i}">${(S.cat.roles[f.kind]||S.cat.roles.unknown).map(([r,l])=>`<option value="${r}" ${S.roles[f.path]===r?'selected':''}>${esc(l)}</option>`).join('')}</select></td></tr>`).join('')+'</table>';
+ } else if(S.folder&&!S.msg)h+='<div class="note">No data files found in this folder yet. Drop files above, or choose another folder.</div>';
+ if(pred){
+  h+=`<h3>Trained model</h3><select id="model" style="min-width:420px">${S.models.length?S.models.map(m=>`<option ${m===S.model?'selected':''}>${esc(m)}</option>`).join(''):'<option value="">No trained model found: run the classifier analysis first</option>'}</select>
+  <p class="det">Models appear here after you run <b>Biomarker discovery and disease classifier</b>. You can also drop a .joblib model file into the folder above and mark it as "Trained model".</p>`;
+ } else if(fileOf('main')){
+  const g=S.g;h+=`<h3>Samples and groups</h3>`;
+  if(g.source)h+=`<div class="note ok">Groups were taken from: <b>${esc(g.source)}</b>. Edit any entry if it is wrong.</div>`;
+  if(g.note)h+=`<div class="note">${esc(g.note)}</div>`;
+  if(g.columns&&g.columns.length>1)h+=`<div style="margin:10px 0"><label class="lab">Sample-sheet column that holds the groups</label><select id="gcol">${g.columns.map(c=>`<option value="${esc(c.name)}" ${c.name===g.column?'selected':''}>${esc(c.name)} (${c.n_unique} values: ${esc(c.examples.slice(0,3).join(', '))})</option>`).join('')}</select></div>`;
+  h+=`<div class="scroll"><table><tr><th>Sample</th><th>Group</th></tr>${g.samples.map((s,i)=>`<tr><td class="fname">${esc(s)}</td><td><input type="text" list="grp" data-s="${i}" value="${esc(g.labels[s]||'')}" style="width:100%;padding:6px 10px"></td></tr>`).join('')}</table></div><datalist id="grp">${distinct().map(x=>`<option>${esc(x)}`).join('')}</datalist>
+  <div class="bar" style="margin-top:10px"><span class="det">Quick assign:</span><input type="text" id="pat" placeholder="samples whose name contains&hellip;" style="flex:0 1 240px;min-width:160px"><span class="det">&rarr;</span><input type="text" id="patg" placeholder="group name" style="flex:0 1 160px;min-width:120px"><button class="btn ghost" id="apply">Apply</button></div>`;
+  const gs=distinct();
+  if(S.analysis==='compare'&&gs.length>=2)h+=`<div class="grid2" style="margin-top:22px"><div><label class="lab">Group of interest (case)</label><select id="case">${gs.map(x=>`<option ${x===S.case?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
+   <div><label class="lab">Reference group (control)</label><select id="control">${gs.map(x=>`<option ${x===S.control?'selected':''}>${esc(x)}</option>`).join('')}</select></div></div>`;
+  if(S.analysis==='classify'&&gs.length>=2)h+=`<div style="margin-top:22px"><label class="lab">Healthy / control group (optional)</label><select id="control"><option value="">None: compare each disease with all the others</option>${gs.map(x=>`<option ${x===S.control?'selected':''}>${esc(x)}</option>`).join('')}</select></div>`;
+ }
+ v.innerHTML=h;bindStep1()}
+function bindStep1(){const v=$('#view');
+ $('#folder').onchange=e=>{S.folder=e.target.value.trim()};$('#rescan').onclick=()=>{S.folder=$('#folder').value.trim();scan()};
+ $('#browse').onclick=()=>openModal();$('#pick').onclick=()=>$('#fileinput').click();$('#fileinput').onchange=e=>upload(e.target.files);
+ const d=$('#drop');['dragenter','dragover'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.add('over')}));
+ ['dragleave','drop'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.remove('over')}));d.addEventListener('drop',e=>upload(e.dataTransfer.files));
+ v.querySelectorAll('select[data-i]').forEach(s=>s.onchange=async()=>{const f=S.files[+s.dataset.i],r=s.value;
+  if(r==='main'||r==='sheet'||r==='ribo')S.files.forEach(o=>{if(o!==f&&S.roles[o.path]===r)S.roles[o.path]='ignore'});S.roles[f.path]=r;await loadGroups();view1()});
+ const m=$('#model');if(m)m.onchange=()=>S.model=m.value;
+ const gc=$('#gcol');if(gc)gc.onchange=async()=>{S.gcol=gc.value;await loadGroups();view1()};
+ v.querySelectorAll('input[data-s]').forEach(i=>i.onchange=()=>{S.g.labels[S.g.samples[+i.dataset.s]]=i.value.trim();pickCC();view1()});
+ const ap=$('#apply');if(ap)ap.onclick=()=>{const p=$('#pat').value.trim().toLowerCase(),g=$('#patg').value.trim();if(!p||!g)return;S.g.samples.forEach(s=>{if(s.toLowerCase().includes(p))S.g.labels[s]=g});pickCC();view1()};
+ const c=$('#case');if(c)c.onchange=()=>{S.case=c.value};const k=$('#control');if(k)k.onchange=()=>{S.control=k.value}}
+async function upload(files){if(!files.length)return;S.msg='';let i=0;
+ for(const f of files){i++;$('#drop').innerHTML=`Uploading ${i} of ${files.length}: <b>${esc(f.name)}</b>&hellip;`;
+  try{await api(`/api/upload?folder=${encodeURIComponent(S.folder)}&name=${encodeURIComponent(f.name)}`,{method:'POST',body:f})}catch(e){S.msg='Upload failed: '+e.message}}
+ await scan()}
+async function openModal(path){const m=$('#modal');m.classList.add('on');
+ const r=await api('/api/fs?path='+encodeURIComponent(path||S.folder||''));$('#mpath').textContent=r.path;
+ $('#mlist').innerHTML=`<li data-p="${esc(r.parent)}">&uarr; &nbsp;<b>Up one level</b></li>`+r.dirs.map(d=>`<li data-p="${esc(r.path+(r.path.endsWith('/')||r.path.endsWith('\\')?'':(r.path.includes('\\')?'\\':'/'))+d)}">&#128193; &nbsp;${esc(d)}</li>`).join('')+(r.dirs.length?'':'<li style="color:var(--muted);cursor:default">No sub-folders</li>');
+ $('#mlist').querySelectorAll('li[data-p]').forEach(li=>li.onclick=()=>openModal(li.dataset.p));$('#muse').onclick=()=>{S.folder=r.path;m.classList.remove('on');scan()};$('#mcancel').onclick=()=>m.classList.remove('on')}
+
+/* ---------------- step 3: options */
+function avail(m){const need=m.id;const hasNet=S.online;
+ const f={chromosome:fileOf('annotation'),pathways:rolesAs('pathway_gmt')[0],gsea:rolesAs('pathway_gmt')[0],regulators:rolesAs('tf_gmt')[0],disease:rolesAs('disease_gmt')[0]};
+ if(need==='ribo')return fileOf('ribo')?'':'No Ribo-seq file selected';
+ if(need==='network')return hasNet?'':'Needs internet: switched off';
+ if(['chromosome','pathways','gsea','regulators','disease'].includes(need))return hasNet||f[need]?'':'Needs internet or a gene-set file: switched off';
+ return''}
+function view2(){const v=$('#view');
+ if(S.analysis==='predict'){v.innerHTML=`<h1>Nothing to choose</h1><p class="sub">Prediction uses the model exactly as it was trained. Continue to run it.</p>`;return}
+ let h=`<h1>${S.analysis==='compare'?'Which analyses do you want?':'Options'}</h1><p class="sub">${S.analysis==='compare'?'Each one answers a different question. Leave them all on for the most complete picture, or switch off what you do not need.':'Set how the classifier report is built.'}</p>
+ <div class="mod" style="margin-bottom:22px"><input type="checkbox" id="online" ${S.online?'checked':''}><h4>Use internet databases</h4><p>Downloads gene-set libraries (Enrichr), gene locations (Ensembl) and protein interactions (STRING) the first time, then reuses them. Switch off to work fully offline; steps that need the internet are skipped unless you supplied the gene-set files.</p></div>`;
+ if(S.analysis==='compare'){h+=`<div class="bar" style="margin-bottom:12px"><button class="btn ghost" id="all">Select all</button><button class="btn ghost" id="none">Only the essentials</button></div>`;
+  h+=S.cat.modules.map(m=>{const a=m.always?'':avail(m);const on=m.always||(S.modules.has(m.id)&&!a);
+   return `<div class="mod ${a?'off':''}"><input type="checkbox" data-m="${m.id}" ${on?'checked':''} ${m.always||a?'disabled':''}><h4>${esc(m.title)}${m.always?'<span class="chip must">always included</span>':''}${m.needs&&!a?`<span class="chip">needs ${esc(m.needs)}</span>`:''}${a?`<span class="chip warn">${esc(a)}</span>`:''}</h4><p>${esc(m.about)}</p>
+   ${m.keyword&&on?`<div class="kw"><label class="lab">Disease keyword to highlight (optional)</label><input type="text" id="kw" value="${esc(S.keyword)}" placeholder="for example: Alzheimer"></div>`:''}</div>`}).join('')}
+ else h+=`<div class="mod"><input type="checkbox" id="ai" ${S.ai?'checked':''}><h4>Add a plain-language AI summary</h4><p>Needs an Anthropic API key stored in the ANTHROPIC_API_KEY setting on this computer. Only gene names and summary numbers are sent, never your raw data.</p></div>`;
+ v.innerHTML=h;
+ $('#online').onchange=e=>{S.online=e.target.checked;view2()};
+ v.querySelectorAll('input[data-m]').forEach(c=>c.onchange=()=>{c.checked?S.modules.add(c.dataset.m):S.modules.delete(c.dataset.m);view2()});
+ const all=$('#all');if(all){all.onclick=()=>{S.cat.modules.forEach(m=>{if(!avail(m))S.modules.add(m.id)});view2()};$('#none').onclick=()=>{S.modules.clear();view2()}}
+ const kw=$('#kw');if(kw)kw.oninput=()=>S.keyword=kw.value;const ai=$('#ai');if(ai)ai.onchange=()=>S.ai=ai.checked}
+
+/* ---------------- step 4: run */
+function settings(){const m=fileOf('main'),r=fileOf('ribo'),sh=fileOf('sheet');
+ return{analysis:S.analysis,expression:m&&m.path,ribo:r&&r.path,sample_sheet:sh&&sh.path,group_column:S.g.column||S.gcol||null,labels:S.analysis==='predict'?null:S.g.labels,
+  case:S.case,control:S.control,modules:[...S.modules].filter(x=>!(avail(S.cat.modules.find(m=>m.id===x)||{id:x}))),online:S.online,keyword:S.keyword,ai:S.ai,model:S.model,
+  pathway_gmt:(rolesAs('pathway_gmt')[0]||{}).path,tf_gmt:(rolesAs('tf_gmt')[0]||{}).path,disease_gmt:(rolesAs('disease_gmt')[0]||{}).path,annotation:(fileOf('annotation')||{}).path,out_name:S.out}}
+function view3(){const v=$('#view'),st=settings(),a=S.cat.analyses.find(x=>x.id===S.analysis);
+ const rows=[['Analysis',a.title],['Main data',(fileOf('main')||{}).name||'-']];
+ if(S.analysis==='compare')rows.push(['Comparison',`${S.case} vs ${S.control}`],['Analyses',st.modules.length+' selected'],['Internet',S.online?'on':'off']);
+ if(S.analysis==='classify')rows.push(['Groups',distinct().join(', ')],['Control',S.control||'none']);
+ if(S.analysis==='predict')rows.push(['Model',S.model]);
+ if(fileOf('ribo')&&S.modules.has('ribo'))rows.push(['Ribo-seq',fileOf('ribo').name]);
+ if(!S.out)S.out='';
+ v.innerHTML=`<h1>Ready to run</h1><p class="sub">Check the summary, then start. Large datasets can take several minutes.</p><dl class="sum">${rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
+ <div style="margin:22px 0 6px"><label class="lab">Name for the results folder (optional)</label><input type="text" id="out" value="${esc(S.out)}" placeholder="for example: apoe4_vs_apoe3" style="width:100%;max-width:420px"></div>
+ <div class="bar" style="margin:18px 0"><button class="btn big" id="run" ${S.runState==='running'?'disabled':''}>${S.runState==='running'?'Running&hellip;':'Run analysis'}</button></div>
+ <div id="prog"></div>`;
+ $('#out').oninput=e=>S.out=e.target.value;$('#run').onclick=startRun;drawRun()}
+function drawRun(){const p=$('#prog');if(!p)return;if(S.runState==='idle'){p.innerHTML='';return}
+ const cls=S.runState==='done'?'done':S.runState==='error'?'err':'';
+ let h=`<div class="pbar ${cls}"><i></i></div><div class="steps">${S.steps.map((s,i)=>`<span class="${i===S.steps.length-1&&S.runState==='running'?'cur':'ok'}">${esc(s)}</span>`).join('')}</div>`;
+ if(S.runState==='done')h+=`<div class="note ok"><b>Finished.</b> Your report is ready.</div><div class="bar"><a class="btn big" style="text-decoration:none" href="${S.report}" target="_blank">Open the report</a><button class="btn ghost" id="folderopen">Show results folder</button><button class="btn ghost" id="again">Run another analysis</button></div>`;
+ if(S.runState==='error')h+=`<div class="note err"><b>It stopped:</b> ${esc(S.runErr||'unknown problem')}<br><span class="det">Details are in the log below. Fix the data or options and run again.</span></div><div class="bar"><button class="btn ghost" id="back2">Back to options</button></div>`;
+ h+=`<h3>Log</h3><div class="log" id="log">${esc(S.lines.join('\n'))}</div>`;p.innerHTML=h;const l=$('#log');if(l)l.scrollTop=l.scrollHeight;
+ const fo=$('#folderopen');if(fo)fo.onclick=()=>api('/api/open',{method:'POST',body:JSON.stringify({path:S.folder_out})});
+ const ag=$('#again');if(ag)ag.onclick=()=>{S.runState='idle';S.lines=[];S.steps=[];go(0)};const b2=$('#back2');if(b2)b2.onclick=()=>{S.runState='idle';go(2)};$('#run').disabled=S.runState==='running';nav()}
+async function startRun(){S.lines=[];S.steps=[];S.runErr=null;S.runState='running';drawRun();
+ try{const r=await api('/api/run',{method:'POST',body:JSON.stringify(settings())});S.job=r.id;poll(0)}catch(e){S.runState='error';S.runErr=e.message;drawRun()}}
+async function poll(since){try{const r=await api(`/api/job?id=${S.job}&since=${since}`);r.lines.forEach(l=>{S.lines.push(l);if(l.startsWith('>> '))S.steps.push(l.slice(3))});
+ if(r.state==='running'){drawRun();setTimeout(()=>poll(r.total),900)}
+ else{S.runState=r.state;S.report=r.report;S.folder_out=r.folder;S.runErr=r.error;drawRun()}}catch(e){S.runState='error';S.runErr=e.message;drawRun()}}
+
+(async()=>{S.cat=await api('/api/catalog');S.folder=S.cat.default_folder;S.modules=new Set(S.cat.modules.filter(m=>!m.always).map(m=>m.id));await loadModels();render()})();
+</script></body></html>
